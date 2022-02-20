@@ -146,7 +146,6 @@ class Auth(Authentication):
     data = urllib.parse.urlencode(params)
     if self.is_authorization():
       req_access_token = requests.post(url=self.endpoint, headers=headers, data=data)
-
       try:
         data = req_access_token.json()
       except json.JSONDecodeError:
@@ -261,10 +260,11 @@ class AiohttpAdapter(Adapter):
 def main():
   with open('env/rmap_jwt_private.key', 'rb') as f_private:
     private_key = f_private.read()
-  with open('env/rmap_client_id.key', 'rb') as f_id:
-    client_id = f_id.read()
+  with open('env/rmap_client_id.key', 'r') as f_id:
+    id = f_id.read()
+  client_id = id
   client_secret = private_key
-  scope = 'read'
+  scope = 'read '
   auth = Auth(client_id, client_secret, scope)
   access_token = auth.get_access_token()["access_token"]
   req = RequestsAdapter(access_token)
