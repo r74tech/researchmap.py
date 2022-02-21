@@ -4,15 +4,28 @@ import requests
 __all__ = [
   'ResearchmapException',
   'HTTPException',
-  'BadRequest',
-  'Forbidden',
-  'NotFound',
-  'PayloadTooLarge',
-  'URITooLong',
-  'TooManyRequests',
-  'QuotaExceeded',
-  'ServiceUnavailable',
-  'InternalServerError'
+  "UnsupportedResponseType",
+  "UnauthorizedClient",
+  "AccessDenied",
+  "InvalidClient",
+  "InvalidScope",
+  "InvalidGrant",
+  "UnsupportedGrantType",
+  "InvalidVersion",
+  "ParseError",
+  "InvalidNonce",
+  "InvalidRequest",
+  "InvalidToken",
+  "MalformedToken",
+  "InsufficientScope",
+  "InvalidIP",
+  "Forbidden",
+  "NotFound",
+  "MethodNotAllowed",
+  "MaxSearchResult",
+  "DatabaseError",
+  "ServerError",
+  "InternalServerError",
 ]
 
 
@@ -30,14 +43,14 @@ class HTTPException(ResearchmapException):
       If you are using the AiohttpAdapter,
       :class:`aiohttp.ClientResponse`.
   message: :class:`str`
-      The Messages returned by DeepL API.
+      The Messages returned by Researchmap API.
   status: :class:`int`
       The status code of the HTTP request.
   """
 
   def __init__(self, response, messega) -> None:
     self.response = response
-    self.message = messega or 'No error message was sent from the iachara API.'
+    self.message = messega or 'No error message was sent from the Researchmap API.'
     if isinstance(response, aiohttp.ClientResponse):
       self.status = response.status
     elif isinstance(response, requests.Response):
@@ -46,8 +59,106 @@ class HTTPException(ResearchmapException):
     super().__init__(f'{self.status} {response.reason}: {self.message}')
 
 
-class BadRequest(HTTPException):
-  """Bad request. Please check error message and your parameters.
+class UnsupportedResponseType(HTTPException):
+  """Exception raised when the response type is not supported.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class UnauthorizedClient(HTTPException):
+  """Exception raised when the client is not authorized.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class AccessDenied(HTTPException):
+  """Exception raised when denied access.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InvalidClient(HTTPException):
+  """Exception raised when the client is invalid.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InvalidScope(HTTPException):
+  """Exception raised when the scope is invalid
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InvalidGrant(HTTPException):
+  """Exception raised when the grant is invalid.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class UnsupportedGrantType(HTTPException):
+  """Exception raised when the type of grant is not supported.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InvalidVersion(HTTPException):
+  """Exception raised when the version is invalid.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class ParseError(HTTPException):
+  """Exception raised when error occurs during parsing.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InvalidNonce(HTTPException):
+  """Exception raised when the notce is invalid.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InvalidRequest(HTTPException):
+  """Exception raised when the request is invalid.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InvalidToken(HTTPException):
+  """Exception raised when the token is invalid.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class MalformedToken(HTTPException):
+  """Exception raised when the token is malformed.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InsufficientScope(HTTPException):
+  """Exception raised when the scope of the request is insufficient.
+  Subclass of :exc:`HTTPException`
+  """
+  pass
+
+
+class InvalidIP(HTTPException):
+  """Exception raised when the ip is invalid.
   Subclass of :exc:`HTTPException`
   """
   pass
@@ -67,37 +178,30 @@ class NotFound(HTTPException):
   pass
 
 
-class PayloadTooLarge(HTTPException):
-  """The request size exceeds the limit.
+class MethodNotAllowed(HTTPException):
+  """The requested method is not allowed.
   Subclass of :exc:`HTTPException`
   """
   pass
 
 
-class URITooLong(HTTPException):
-  """The request URL is too long.
-  You can avoid this error by using a POST request instead of a GET request.
+class MaxSearchResult(HTTPException):
+  """The requested limit is too large.
   Subclass of :exc:`HTTPException`
   """
   pass
 
 
-class TooManyRequests(HTTPException):
-  """Too many requests. Please wait and resend your request.
+
+class DatabaseError(HTTPException):
+  """The database is unavailable.
   Subclass of :exc:`HTTPException`
   """
   pass
 
 
-class QuotaExceeded(HTTPException):
-  """Quota exceeded. The character limit has been reached.
-  Subclass of :exc:`HTTPException`
-  """
-  pass
-
-
-class ServiceUnavailable(HTTPException):
-  """Resource currently unavailable. Try again later.
+class ServerError(HTTPException):
+  """The server is unavailable.
   Subclass of :exc:`HTTPException`
   """
   pass
