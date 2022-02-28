@@ -16,12 +16,14 @@ __version__ = '0.1.0'
 
 __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 
-from .adapter import Adapter, AiohttpAdapter, RequestsAdapter
+from .adapter import Auth, Authentication, Adapter, AiohttpAdapter, RequestsAdapter
 from .wrapper import Wrapper
 
 __all__ = [
   'Wrapper',
   'Adapter',
+  'Auth',
+  'Authentication',
   'AiohttpAdapter',
   'RequestsAdapter'
 ]

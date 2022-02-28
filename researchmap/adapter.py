@@ -11,9 +11,14 @@ import urllib
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
-# from .errors import (BadRequest, Forbidden, HTTPException, InternalServerError,
-#                      NotFound, PayloadTooLarge, QuotaExceeded,
-#                      ServiceUnavailable, TooManyRequests, URITooLong)
+from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, InvalidClient, InvalidScope,
+                     InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
+                     InvalidRequest, InvalidToken, MalformedToken, InsufficientScope, InvalidIP,
+                     Forbidden, NotFound, MethodNotAllowed, MaxSearchResult, DatabaseError,
+                     ServerError, InternalServerError,)
+
+
+
 
 __all__ = ['Authentication', 'Auth', 'Adapter', 'RequestsAdapter', 'AiohttpAdapter']
 
@@ -245,11 +250,8 @@ class RequestsAdapter(Adapter):
       'Content-Type': 'application/x-www-form-urlencoded'
     }
     url = self.base_url.format(permalink=permalink, archivement_type=archivement_type, query=query)
-    print(payload)
     payload = urllib.parse.urlencode(payload)
     resp = requests.request(method, url, headers=headers, data=payload, **kwargs)
-
-    print(resp.status_code, resp.json())
     try:
       data = resp.json()
     except json.JSONDecodeError:
@@ -262,6 +264,10 @@ class RequestsAdapter(Adapter):
 
   def search_researcher(self, payload: dict = {}) -> str:
     data = self.request('GET', '/researchers', payload=payload)
+    return data
+
+  def get_researcher_profile(self, permalink, payload: dict = {}) -> str:
+    data = self.request('GET', permalink, archivement_type='profile', payload=payload)
     return data
 
   def get_usage(self) -> None:
@@ -299,12 +305,12 @@ def main():
     id = f_id.read()
   client_id = id
   client_secret = private_key
-  scope = 'read researchers'
+  scope = 'public_only'
   auth = Auth(client_id, client_secret, scope)
   access_token = auth.get_access_token()["access_token"]
   req = RequestsAdapter(access_token)
   payload = {"format": "json", "limit": 100, "institution_code": "0332000000"}
-  print(req.get_bulk(payload))
+  print(req.search_researcher(payload))
 
 
 async def aiomain():
