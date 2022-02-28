@@ -10,6 +10,12 @@ This project provides a convenient wrapper around the `Researchmap API`_.
 
 .. _Researchmap API: https://researchmap.jp/outline/v2api/v2API.pdf
 
+.. toctree::
+   :maxdepth: 1
+   :glob:
+
+   module/*
+   example/*
 
 Installation
 ============
