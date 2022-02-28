@@ -25,4 +25,4 @@ The Researchmap API is certified using the JWT certification, which requires app
 
 Example:
 ========
-:wrapper:`./example/wrapper.rst`
+:wrapper:`./example/wrapper`
