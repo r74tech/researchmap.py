@@ -22,3 +22,7 @@ Access Credentials
 ==================
 
 The Researchmap API is certified using the JWT certification, which requires approval from the National Institute of Science and Technology Policy.
+
+Example:
+========
+:wrapper:`./example/wrapper.md`
