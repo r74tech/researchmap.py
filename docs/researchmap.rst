@@ -4,7 +4,7 @@ API Reference
 ===============
 
 Adapter
-----
+-------
 
 Auth
 ~~~~

@@ -35,11 +35,11 @@ class Authentication(metaclass=ABCMeta):
     self.now = datetime.datetime.now(datetime.timezone.utc)
 
   @abstractmethod
-  def gen_jwt(self) -> str:
+  def gen_jwt(self) -> bytes:
     raise NotImplementedError()
 
   @abstractmethod
-  def gen_pubkey(self) -> str:
+  def gen_pubkey(self) -> bytes:
     raise NotImplementedError()
 
   @abstractmethod
@@ -47,8 +47,13 @@ class Authentication(metaclass=ABCMeta):
     raise NotImplementedError()
 
   @abstractmethod
-  def get_access_token(self, jwt: str, **kwargs):
+  def get_access_token_response(self, jwt: str, **kwargs)->  Optional[Union[list, dict]]:
     raise NotImplementedError()
+
+  @abstractmethod
+  def get_access_token(self, *, access_token_response: str) -> str:
+    raise NotImplementedError()
+
 
   @abstractmethod
   def get_usage(self) -> dict:
@@ -130,6 +135,17 @@ class Auth(Authentication):
   """
 
   @property
+  def is_trial(self) -> bool:
+    """Get trial mode.
+
+    Returns
+    -------
+    :class:`bool`
+      Trial mode.
+    """
+    return self.trial
+
+  @property
   def time_now(self) -> datetime.datetime:
     """Get current time [aware].
 
@@ -163,17 +179,26 @@ class Auth(Authentication):
     return self.now + datetime.timedelta(seconds=self.exp)
 
   @property
-  def is_trial(self) -> bool:
-    """Get trial mode.
+  def token(self) -> str:
+    """Get token.
 
     Returns
     -------
-    :class:`bool`
-      Trial mode.
-    """
-    return self.trial
+    :class:`str`
+      Token.
 
-  def gen_jwt(self, *, exp: int = None, iat: int = None, sub: int = None) -> str:
+    Raises
+    ------
+    :class:`~researchmap.exceptions.InvalidToken`
+      Invalid token.
+    :class:`json.JSONDecodeError`
+      JSON decode error.
+    :class:`requests.exceptions.HTTPError`
+      HTTP error.
+    """
+    return self.get_access_token()
+
+  def gen_jwt(self, *, exp: int = None, iat: int = None, sub: int = None) -> bytes:
     """Generate JWT.
 
     Keyword Arguments
@@ -187,7 +212,7 @@ class Auth(Authentication):
 
     Returns
     -------
-    :class:`str`
+    :class:`bytes`
       jwt auth token.
     """
     if exp is None:
@@ -208,7 +233,7 @@ class Auth(Authentication):
                       algorithm=self.algorithm)
     return _jwt
 
-  def gen_pubkey(self, *, client_secret: str = None) -> str:
+  def gen_pubkey(self, *, client_secret: str = None) -> bytes:
     """
     Generate public key.
 
@@ -219,7 +244,7 @@ class Auth(Authentication):
 
     Returns
     -------
-    :class:`str`
+    :class:`bytes`
       public key.
     """
     if client_secret is None:
@@ -251,6 +276,12 @@ class Auth(Authentication):
     -------
     :class:`bool`
       True if authorization.
+
+    Raises
+    ------
+    :class:`jwt.InvalidTokenError`
+      Invalid JWT.
+
     """
     if _jwt is None:
       _jwt = self.gen_jwt()
@@ -264,21 +295,28 @@ class Auth(Authentication):
         'exp'] == int(self.time_exp.timestamp()):
         return True
     except:
+      print("The signature of JWT cannot be verified.")
       return False
 
-  def get_access_token(self, *, _jwt: str = None, **kwargs) -> Optional[Union[list, dict]]:
+  def get_access_token_response(self, *, _jwt: str = None, **kwargs) -> Optional[Union[list, dict]]:
     """Get access token.
 
     Keyword Arguments
     ----------
     _jwt: :class:`str`
-      JWT token.
+      JWT.
 
     Returns
     -------
     Optional[Union[:class:`list`, :class:`dict`]]
       Access token.
 
+    Raises
+    ------
+    :class:`.HTTPException`
+      An unknown HTTP related error occurred, usually when it isn’t 200 or the known incorrect credentials passing status code.
+    :class:`.errors.__all__`
+      An error occurred in the API.
     """
     if _jwt is None:
       _jwt = self.gen_jwt()
@@ -301,6 +339,32 @@ class Auth(Authentication):
       return self._check_status(req_access_token.status_code, req_access_token, data)
     else:
       print("Access Token is not valid")
+
+  def get_access_token(self, *, access_token_response: Optional[Union[list, dict]] = None) -> str:
+    """Get access token.
+
+    Keyword Arguments
+    ----------
+    access_token_response: :class: Optional[Union[:class:`list`, :class:`dict`]]
+      Access token response.
+
+    Returns
+    -------
+    :class:`str`
+      Access token.
+
+    Raises
+    ------
+    :class:`TypeError`
+      The type of the argument is not correct.
+    :class:`.HTTPException`
+      An unknown HTTP related error occurred, usually when it isn’t 200 or the known incorrect credentials passing status code.
+    :class:`~researchmap.exceptions.InvalidToken`
+      Invalid token.
+    """
+    if access_token_response is None:
+      access_token_response = self.get_access_token_response()
+    return access_token_response['access_token']
 
   def get_usage(self) -> None:
     return None
@@ -403,18 +467,57 @@ class RequestsAdapter(Adapter):
     return self._check_status(resp.status_code, resp, data)
 
   def get_bulk(self, payload=None) -> Union[list, dict, None]:
+    """
+    Get bulk data from the API.
+
+    Parameters
+    ----------
+    payload : :class:`dict`
+      A dictionary containing the parameters for the request.
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
     if payload is None:
       payload = {}
     data = self.request('GET', '/_bulk', payload=payload)
     return data
 
   def search_researcher(self, payload=None) -> Union[list, dict, None]:
+    """ Search for researchers.
+
+    Parameters
+    ----------
+    payload : :class:`dict`
+      A dictionary containing the parameters for the request.
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
     if payload is None:
       payload = {}
     data = self.request('GET', '/researchers', payload=payload)
     return data
 
   def get_researcher_profile(self, permalink, payload=None) -> Union[list, dict, None]:
+    """ Get a researcher profile.
+
+    Parameters
+    ----------
+    permalink : :class:`str`
+      The permalink of the researcher.
+    payload : :class:`dict`
+      A dictionary containing the parameters for the request.
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
     if payload is None:
       payload = {}
     data = self.request('GET', permalink, archivement_type='profile', payload=payload)
@@ -446,30 +549,3 @@ class AiohttpAdapter(Adapter):
 
   async def get_usage(self) -> None:
     return None
-
-
-def main():
-  with open('env/rmap_jwt_private.key', 'rb') as f_private:
-    private_key = f_private.read()
-  with open('env/rmap_client_id.key', 'r') as f_id:
-    id = f_id.read()
-  client_id = id
-  client_secret = private_key
-  scope = 'public_only'
-  auth = Auth(client_id, client_secret, scope)
-  access_token = auth.get_access_token()["access_token"]
-  req = RequestsAdapter(access_token)
-  payload = {"format": "json", "limit": 100, "institution_code": "0332000000"}
-  print(req.search_researcher(payload))
-
-
-async def aiomain():
-  with open('env/rmap_jwt_private.key', 'rb') as f_private:
-    private_key = f_private.read()
-
-
-if __name__ == "__main__":
-  main()
-  # import asyncio
-  # loop = asyncio.get_event_loop()
-  # loop.run_until_complete(aiomain())
