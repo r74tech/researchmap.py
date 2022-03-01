@@ -82,7 +82,7 @@ resource_links = {}
 
 html_static_path = ['_static']
 
-autodoc_mock_imports = ["jwt", "cryptography","requests","aiohttp"]
+autodoc_mock_imports = ["jwt", "cryptography","requests","aiohttp","sphinxcontrib_trio", "myst_parser"]
 
 
 
