@@ -14,6 +14,7 @@ import os
 import sys
 import sphinx_rtd_theme
 sys.path.insert(0, os.path.abspath('..'))
+sys.path.append(os.path.abspath("extensions"))
 
 
 
@@ -30,9 +31,18 @@ author = 'Author'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.todo',
+    "builder",
+    "sphinx.ext.autodoc",
+    "sphinx.ext.extlinks",
+    "sphinx.ext.intersphinx",
+    "sphinx.ext.napoleon",
+    "sphinxcontrib_trio",
+    "details",
+    "exception_hierarchy",
+    "attributetable",
+    "resourcelinks",
+    "nitpick_file_ignorer",
+    "myst_parser",
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -51,22 +61,38 @@ language = 'en'
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 
-# -- Options for HTML output -------------------------------------------------
+
+# -- Options for HTML output ----------------------------------------------
+
 
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
-#
-html_theme = 'sphinx_rtd_theme'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
+
+
+html_experimental_html5_writer = True
+html_theme = 'basic'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
+
+resource_links = {}
+
+
 html_static_path = ['_static']
 
 autodoc_mock_imports = ["jwt", "cryptography","requests","aiohttp"]
 
 
+
+
+rst_prolog = """
+.. |coro| replace:: This function is a |coroutine_link|_.
+.. |maybecoro| replace:: This function *could be a* |coroutine_link|_.
+.. |coroutine_link| replace:: *coroutine*
+.. _coroutine_link: https://docs.python.org/3/library/asyncio-task.html#coroutine
+"""
 # -- Extension configuration -------------------------------------------------
 
 # -- Options for todo extension ----------------------------------------------
