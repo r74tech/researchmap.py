@@ -1,5 +1,5 @@
 .. researchmap documentation master file, created by
-   sphinx-quickstart on Tue Mar  1 11:17:02 2022.
+   sphinx-quickstart on Tue Mar  1 11:36:48 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 

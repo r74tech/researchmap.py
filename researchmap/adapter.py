@@ -15,28 +15,12 @@ from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, 
                      InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
                      InvalidRequest, InvalidToken, MalformedToken, InsufficientScope, InvalidIP,
                      Forbidden, NotFound, MethodNotAllowed, MaxSearchResult, DatabaseError,
-                     ServerError, InternalServerError,)
-
-
-
+                     ServerError, InternalServerError, )
 
 __all__ = ['Authentication', 'Auth', 'Adapter', 'RequestsAdapter', 'AiohttpAdapter']
 
 
 class Authentication(metaclass=ABCMeta):
-  """
-  Researchmap authentication interface.
-  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  Args:
-    :client_id: Client ID.
-    :client_secret: Client secret.key.
-    :iss: Issued at.
-    :exp: Expiration.
-    :sub: Subject.
-  Returns:
-    :access: Access token.
-  """
-
   def __init__(self, client_id, client_secret, scope, *, iss: int = 30, exp: int = 30, sub=0):
     self.endpoint = 'https://api.researchmap.jp/oauth2/token'
     self.version = "2"
@@ -98,11 +82,31 @@ class Authentication(metaclass=ABCMeta):
 
 
 class Auth(Authentication):
-  def gen_jwt(self) -> str:
-    """
-    Generate JWT.
-    :return: jwt auth token.
+  """Researchmap authentication interface.
+  Parameters
+  ----------
+  client_id: :class:`str`
+    Client ID.
+  client_secret: :class:`str`
+    Client secret.key.
+  iss: :class:`int`
+    Issued at.
+  exp: :class:`int`
+    Expire at.
+  sub: :class:`int`
+    Subject.
+  Returns
+  -------
+  access_token: :class:`str`
+    Access token.
+  """
 
+  def gen_jwt(self) -> str:
+    """Generate JWT.
+    Returns
+    -------
+    jwt: :class:`str`
+      jwt auth token.
     """
     payload = {
       "iss": self.client_id,
