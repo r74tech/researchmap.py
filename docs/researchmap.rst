@@ -40,21 +40,9 @@ Module contents
 
 API Reference
 ---------------
+.. attributetable:: researchmap.adapter.Auth
 
-.. attributetable:: researchmap.adapter
-
-.. autoclass:: researchmap.adapter.Auth()
+.. autoclass:: researchmap.adapter.Auth
     :members:
-    :exclude-members: get_usage
+    :inherited-members:
 
-    .. automethod:: Auth.gen_jwt()
-        :decorator:
-
-    .. automethod:: Auth.gen_pubkey()
-        :decorator:
-
-    .. automethod:: Auth.is_authorization()
-        :decorator:
-
-    .. automethod:: Auth.get_access_token()
-        :decorator:

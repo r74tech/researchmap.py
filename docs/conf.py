@@ -10,9 +10,10 @@
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #
-# import os
-# import sys
-# sys.path.insert(0, 'C:\\github\\researchmap.py\\researchmap')
+import os
+import sys
+sys.path.insert(0, os.path.abspath('..'))
+
 
 
 # -- Project information -----------------------------------------------------
@@ -61,6 +62,8 @@ html_theme = 'alabaster'
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
 
+autodoc_mock_imports = ["jwt", "cryptography"]
+
 
 # -- Extension configuration -------------------------------------------------
 
@@ -68,3 +71,4 @@ html_static_path = ['_static']
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
+autosummary_generate = True
