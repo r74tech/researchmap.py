@@ -48,15 +48,17 @@ class HTTPException(ResearchmapException):
       The status code of the HTTP request.
   """
 
-  def __init__(self, response, messega) -> None:
+  def __init__(self, response, messega, *, error: str = None) -> None:
     self.response = response
+    if error is not None:
+      self.error = f"<{error}>"
     self.message = messega or 'No error message was sent from the Researchmap API.'
     if isinstance(response, aiohttp.ClientResponse):
       self.status = response.status
     elif isinstance(response, requests.Response):
       self.status = response.status_code
 
-    super().__init__(f'{self.status} {response.reason}: {self.message}')
+    super().__init__(f'{self.status} {response.reason}{self.error}: {self.message}')
 
 
 class UnsupportedResponseType(HTTPException):
@@ -190,7 +192,6 @@ class MaxSearchResult(HTTPException):
   Subclass of :exc:`HTTPException`
   """
   pass
-
 
 
 class DatabaseError(HTTPException):

@@ -12,7 +12,6 @@
 #
 import os
 import sys
-import sphinx_rtd_theme
 sys.path.insert(0, os.path.abspath('..'))
 sys.path.append(os.path.abspath("extensions"))
 
@@ -45,6 +44,21 @@ extensions = [
     "myst_parser",
 ]
 
+# Links used for cross-referencing stuff in other documentation
+intersphinx_mapping = {
+    "py": ("https://docs.python.org/3", None),
+    "aio": ("https://docs.aiohttp.org/en/stable/", None),
+    "req": ("https://docs.python-requests.org/en/latest/", None),
+}
+
+rst_prolog = """
+.. |coro| replace:: This function is a |coroutine_link|_.
+.. |maybecoro| replace:: This function *could be a* |coroutine_link|_.
+.. |coroutine_link| replace:: *coroutine*
+.. _coroutine_link: https://docs.python.org/3/library/asyncio-task.html#coroutine
+"""
+
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -53,7 +67,7 @@ templates_path = ['_templates']
 #
 # This is also used if you do content translation via gettext catalogs.
 # Usually you set "language" from the command line for these cases.
-language = 'en'
+# language = 'en'
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
@@ -75,7 +89,6 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 
 html_experimental_html5_writer = True
 html_theme = 'basic'
-html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 resource_links = {}
 
@@ -86,13 +99,10 @@ autodoc_mock_imports = ["jwt", "cryptography","requests","aiohttp","sphinxcontri
 
 
 
+html_search_scorer = "_static/scorer.js"
 
-rst_prolog = """
-.. |coro| replace:: This function is a |coroutine_link|_.
-.. |maybecoro| replace:: This function *could be a* |coroutine_link|_.
-.. |coroutine_link| replace:: *coroutine*
-.. _coroutine_link: https://docs.python.org/3/library/asyncio-task.html#coroutine
-"""
+html_js_files = ["custom.js", "settings.js", "copy.js", "sidebar.js"]
+
 # -- Extension configuration -------------------------------------------------
 
 # -- Options for todo extension ----------------------------------------------
@@ -100,3 +110,12 @@ rst_prolog = """
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = True
 autosummary_generate = True
+
+
+locale_dirs = ['locale/']   # path is example but recommended.
+gettext_compact = False
+
+
+def setup(app):
+    if app.config.language == 'ja':
+        app.config.intersphinx_mapping['py'] = ('https://docs.python.org/ja/3', None)

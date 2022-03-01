@@ -14,13 +14,13 @@ from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, 
                      InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
                      InvalidRequest, InvalidToken, MalformedToken, InsufficientScope, InvalidIP,
                      Forbidden, NotFound, MethodNotAllowed, MaxSearchResult, DatabaseError,
-                     ServerError, InternalServerError, )
+                     ServerError, InternalServerError, HTTPException)
 
 __all__ = ['Authentication', 'Auth', 'Adapter', 'RequestsAdapter', 'AiohttpAdapter']
 
 
 class Authentication(metaclass=ABCMeta):
-  def __init__(self, client_id, client_secret, scope, *, iat: int = 30, exp: int = 30, sub=0):
+  def __init__(self, client_id, client_secret, scope, *, iat: int = 30, exp: int = 30, sub=0, trial: bool = False):
     self.endpoint = 'https://api.researchmap.jp/oauth2/token'
     self.version = "2"
     self.grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer"
@@ -31,6 +31,7 @@ class Authentication(metaclass=ABCMeta):
     self.iat = iat
     self.exp = exp
     self.sub = sub
+    self.trial = trial
     self.now = datetime.datetime.now(datetime.timezone.utc)
 
   @abstractmethod
@@ -56,25 +57,50 @@ class Authentication(metaclass=ABCMeta):
   def _check_status(self, status_code, response, data) -> Union[dict, list]:
     if 200 <= status_code < 300:
       return data
-    message = data.get('message', '') if data else ''
-    if status_code == 302:
-      raise Moved_Temporarily(response, message)
-    elif status_code == 400:
-      raise BadRequest(response, message)
+    error_messages = data.get('error', '') if data else ''
+    message = data.get('error_description', '') if data else ''
+    if status_code == 302 and error_messages == 'unsupported_response_type':
+      raise UnsupportedResponseType(response, message)
+    elif status_code == 400 and error_messages == 'unauthorized_client':
+      raise UnauthorizedClient(response, message, error="unauthorized_client")
+    elif status_code == 400 and error_messages == 'access_denied':
+      raise AccessDenied(response, message, error="access_denied")
+    elif status_code == 400 and error_messages == 'invalid_client':
+      raise InvalidClient(response, message, error="invalid_client")
+    elif status_code == 400 and error_messages == 'invalid_scope':
+      raise InvalidScope(response, message, error="invalid_scope")
+    elif status_code == 400 and error_messages == 'invalid_grant':
+      raise InvalidGrant(response, message, error="invalid_grant")
+    elif status_code == 400 and error_messages == 'unsupported_grant_type':
+      raise UnsupportedGrantType(response, message, error="unsupported_grant_type")
+    elif status_code == 400 and error_messages == 'invalid_version':
+      raise InvalidVersion(response, message, error="invalid_version")
+    elif status_code == 400 and error_messages == 'parse_error':
+      raise ParseError(response, message, error="parse_error")
+    elif status_code == 400 and error_messages == 'invalid_nonce':
+      raise InvalidNonce(response, message, error="invalid_nonce")
+    elif (status_code == 400 or status_code == 405) and error_messages == 'invalid_request':
+      raise InvalidRequest(response, message, error="invalid_request")
+    elif status_code == 401 and error_messages == 'invalid_token':
+      raise InvalidToken(response, message, error="invalid_token")
+    elif status_code == 401 and error_messages == 'malformed_token':
+      raise MalformedToken(response, message, error="malformed_token")
+    elif status_code == 401 and error_messages == 'insufficient_scope':
+      raise InsufficientScope(response, message, error="insufficient_scope")
+    elif status_code == 401 and error_messages == 'invalid_ip':
+      raise InvalidIP(response, message, error="invalid_ip")
     elif status_code == 403:
-      raise Forbidden(response, message)
+      raise Forbidden(response, message, error="forbidden")
     elif status_code == 404:
-      raise NotFound(response, message)
-    elif status_code == 413:
-      raise PayloadTooLarge(response, message)
-    elif status_code == 414:
-      raise URITooLong(response, message)
-    elif status_code == 429:
-      raise TooManyRequests(response, message)
-    elif status_code == 456:
-      raise QuotaExceeded(response, message)
-    elif status_code == 503:
-      raise ServiceUnavailable(response, message)
+      raise NotFound(response, message, error="not_found")
+    elif status_code == 405 and error_messages == 'method_not_allowed':
+      raise MethodNotAllowed(response, message, error="method_not_allowed")
+    elif status_code == 416 and error_messages == 'max_search_result':
+      raise MaxSearchResult(response, message, error="max_search_result")
+    elif status_code == 500 and error_messages == 'database_error':
+      raise DatabaseError(response, message, error="database_error")
+    elif status_code == 500 and error_messages == 'server_error':
+      raise ServerError(response, message, error="server_error")
     elif 500 <= status_code < 600:
       raise InternalServerError(response, message)
     else:
@@ -99,21 +125,18 @@ class Auth(Authentication):
     Expire at [sec].
   sub: :class:`int`
     Subject.
-
-  Returns
-  -------
-  :class:`str`
-    Access token.
+  trial: :class:`bool`
+    Trial mode.
   """
 
   @property
   def time_now(self) -> datetime.datetime:
-    """Get current time.
+    """Get current time [aware].
 
     Returns
     -------
     :class:`datetime.datetime`
-      Current time [aware].
+      Current time of UTC.
     """
     return self.now
 
@@ -124,20 +147,31 @@ class Auth(Authentication):
     Returns
     -------
     :class:`datetime.datetime`
-      Issued at time [aware].
+      Issued at time of UTC.
     """
     return self.now - datetime.timedelta(seconds=self.iat)
 
   @property
   def time_exp(self) -> datetime.datetime:
-    """Get expire at time.
+    """Get expire at time [aware].
 
     Returns
     -------
     :class:`datetime.datetime`
-      Expire at time.
+      Expire at time of UTC.
     """
     return self.now + datetime.timedelta(seconds=self.exp)
+
+  @property
+  def is_trial(self) -> bool:
+    """Get trial mode.
+
+    Returns
+    -------
+    :class:`bool`
+      Trial mode.
+    """
+    return self.trial
 
   def gen_jwt(self, *, exp: int = None, iat: int = None, sub: int = None) -> str:
     """Generate JWT.
@@ -279,16 +313,16 @@ class Adapter(metaclass=ABCMeta):
     self.payload = {}
 
   @abstractmethod
-  def request(self, method: str,
-              permalink: str, archivement_type: str, payload: dict = {}, **kwargs) -> Optional[Union[list, dict]]:
+  def request(self, method: str, permalink: str, *,
+              archivement_type: str, payload: dict, **kwargs) -> Optional[Union[list, dict]]:
     raise NotImplementedError()
 
   @abstractmethod
-  def get_bulk(self, payload: dict = {}):
+  def get_bulk(self, payload: dict):
     raise NotImplementedError()
 
   @abstractmethod
-  def search_researcher(self, payload: dict = {}):
+  def search_researcher(self, payload: dict):
     raise NotImplementedError()
 
   @abstractmethod
@@ -303,45 +337,45 @@ class Adapter(metaclass=ABCMeta):
     if status_code == 302 and error_messages == 'unsupported_response_type':
       raise UnsupportedResponseType(response, message)
     elif status_code == 400 and error_messages == 'unauthorized_client':
-      raise UnauthorizedClient(response, message)
+      raise UnauthorizedClient(response, message, error="unauthorized_client")
     elif status_code == 400 and error_messages == 'access_denied':
-      raise AccessDenied(response, message)
+      raise AccessDenied(response, message, error="access_denied")
     elif status_code == 400 and error_messages == 'invalid_client':
-      raise InvalidClient(response, message)
+      raise InvalidClient(response, message, error="invalid_client")
     elif status_code == 400 and error_messages == 'invalid_scope':
-      raise InvalidScope(response, message)
+      raise InvalidScope(response, message, error="invalid_scope")
     elif status_code == 400 and error_messages == 'invalid_grant':
-      raise InvalidGrant(response, message)
+      raise InvalidGrant(response, message, error="invalid_grant")
     elif status_code == 400 and error_messages == 'unsupported_grant_type':
-      raise UnsupportedGrantType(response, message)
+      raise UnsupportedGrantType(response, message, error="unsupported_grant_type")
     elif status_code == 400 and error_messages == 'invalid_version':
-      raise InvalidVersion(response, message)
+      raise InvalidVersion(response, message, error="invalid_version")
     elif status_code == 400 and error_messages == 'parse_error':
-      raise ParseError(response, message)
+      raise ParseError(response, message, error="parse_error")
     elif status_code == 400 and error_messages == 'invalid_nonce':
-      raise InvalidNonce(response, message)
+      raise InvalidNonce(response, message, error="invalid_nonce")
     elif (status_code == 400 or status_code == 405) and error_messages == 'invalid_request':
-      raise InvalidRequest(response, message)
+      raise InvalidRequest(response, message, error="invalid_request")
     elif status_code == 401 and error_messages == 'invalid_token':
-      raise InvalidToken(response, message)
+      raise InvalidToken(response, message, error="invalid_token")
     elif status_code == 401 and error_messages == 'malformed_token':
-      raise MalformedToken(response, message)
+      raise MalformedToken(response, message, error="malformed_token")
     elif status_code == 401 and error_messages == 'insufficient_scope':
-      raise InsufficientScope(response, message)
+      raise InsufficientScope(response, message, error="insufficient_scope")
     elif status_code == 401 and error_messages == 'invalid_ip':
-      raise InvalidIP(response, message)
+      raise InvalidIP(response, message, error="invalid_ip")
     elif status_code == 403:
-      raise Forbidden(response, message)
+      raise Forbidden(response, message, error="forbidden")
     elif status_code == 404:
-      raise NotFound(response, message)
+      raise NotFound(response, message, error="not_found")
     elif status_code == 405 and error_messages == 'method_not_allowed':
-      raise MethodNotAllowed(response, message)
+      raise MethodNotAllowed(response, message, error="method_not_allowed")
     elif status_code == 416 and error_messages == 'max_search_result':
-      raise MaxSearchResult(response, message)
+      raise MaxSearchResult(response, message, error="max_search_result")
     elif status_code == 500 and error_messages == 'database_error':
-      raise DatabaseError(response, message)
+      raise DatabaseError(response, message, error="database_error")
     elif status_code == 500 and error_messages == 'server_error':
-      raise ServerError(response, message)
+      raise ServerError(response, message, error="server_error")
     elif 500 <= status_code < 600:
       raise InternalServerError(response, message)
     else:
@@ -350,8 +384,10 @@ class Adapter(metaclass=ABCMeta):
 
 class RequestsAdapter(Adapter):
   def request(self, method: str, permalink: str, *,
-              archivement_type: str = "", query: str = "", payload: dict = {}, **kwargs) -> Optional[Union[list, dict]]:
+              archivement_type: str = "", query: str = "", payload=None, **kwargs) -> Optional[Union[list, dict]]:
 
+    if payload is None:
+      payload = {}
     headers = {
       'Authorization': 'Bearer {}'.format(self.authentication_key),
       'Accept': 'application/ld+json,application/json;q=0.1',
@@ -366,15 +402,21 @@ class RequestsAdapter(Adapter):
       data = resp.content
     return self._check_status(resp.status_code, resp, data)
 
-  def get_bulk(self, payload: dict = {}) -> str:
+  def get_bulk(self, payload=None) -> Union[list, dict, None]:
+    if payload is None:
+      payload = {}
     data = self.request('GET', '/_bulk', payload=payload)
     return data
 
-  def search_researcher(self, payload: dict = {}) -> str:
+  def search_researcher(self, payload=None) -> Union[list, dict, None]:
+    if payload is None:
+      payload = {}
     data = self.request('GET', '/researchers', payload=payload)
     return data
 
-  def get_researcher_profile(self, permalink, payload: dict = {}) -> str:
+  def get_researcher_profile(self, permalink, payload=None) -> Union[list, dict, None]:
+    if payload is None:
+      payload = {}
     data = self.request('GET', permalink, archivement_type='profile', payload=payload)
     return data
 
@@ -390,7 +432,7 @@ class AiohttpAdapter(Adapter):
     url = self.base_url.format(permalink=permalink, archivement_type=archivement_type, query=query)
 
     async with aiohttp.request(
-      method, url, data=payload, **kwargs) as resp:
+        method, url, data=payload, **kwargs) as resp:
       try:
         data = await resp.json(content_type=None)
       except json.JSONDecodeError:
