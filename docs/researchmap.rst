@@ -35,3 +35,26 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+
+API Reference
+---------------
+
+.. attributetable:: researchmap.adapter
+
+.. autoclass:: researchmap.adapter.Auth()
+    :members:
+    :exclude-members: get_usage
+
+    .. automethod:: Auth.gen_jwt()
+        :decorator:
+
+    .. automethod:: Auth.gen_pubkey()
+        :decorator:
+
+    .. automethod:: Auth.is_authorization()
+        :decorator:
+
+    .. automethod:: Auth.get_access_token()
+        :decorator:

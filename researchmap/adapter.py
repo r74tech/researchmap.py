@@ -99,6 +99,11 @@ class Authentication(metaclass=ABCMeta):
 
 class Auth(Authentication):
   def gen_jwt(self) -> str:
+    """
+    Generate JWT.
+    :return: jwt auth token.
+
+    """
     payload = {
       "iss": self.client_id,
       "aud": self.endpoint,
@@ -111,6 +116,11 @@ class Auth(Authentication):
     return _jwt
 
   def gen_pubkey(self) -> str:
+    """
+    Generate public key.
+    :return: generated public key.
+
+    """
     privkey = serialization.load_pem_private_key(
       self.client_secret,
       password=None,
