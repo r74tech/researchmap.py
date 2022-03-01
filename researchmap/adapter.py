@@ -20,7 +20,7 @@ __all__ = ['Authentication', 'Auth', 'Adapter', 'RequestsAdapter', 'AiohttpAdapt
 
 
 class Authentication(metaclass=ABCMeta):
-  def __init__(self, client_id, client_secret, scope, *, iss: int = 30, exp: int = 30, sub=0):
+  def __init__(self, client_id, client_secret, scope, *, iat: int = 30, exp: int = 30, sub=0):
     self.endpoint = 'https://api.researchmap.jp/oauth2/token'
     self.version = "2"
     self.grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer"
@@ -28,9 +28,10 @@ class Authentication(metaclass=ABCMeta):
     self.client_id = client_id
     self.client_secret = client_secret
     self.scope = scope
-    self.iss = iss
+    self.iat = iat
     self.exp = exp
     self.sub = sub
+    self.now = datetime.datetime.now(datetime.timezone.utc)
 
   @abstractmethod
   def gen_jwt(self) -> str:
@@ -82,50 +83,116 @@ class Authentication(metaclass=ABCMeta):
 
 class Auth(Authentication):
   """Researchmap authentication interface.
+
   Parameters
   ----------
   client_id: :class:`str`
     Client ID.
   client_secret: :class:`str`
     Client secret.key.
-  iss: :class:`int`
-    Issued at.
+
+  Keyword Arguments
+  -----------------
+  iat: :class:`int`
+    Issued at [sec].
   exp: :class:`int`
-    Expire at.
+    Expire at [sec].
   sub: :class:`int`
     Subject.
+
   Returns
   -------
-  access_token: :class:`str`
+  :class:`str`
     Access token.
   """
 
-  def gen_jwt(self) -> str:
-    """Generate JWT.
+  @property
+  def time_now(self) -> datetime.datetime:
+    """Get current time.
+
     Returns
     -------
-    jwt: :class:`str`
+    :class:`datetime.datetime`
+      Current time [aware].
+    """
+    return self.now
+
+  @property
+  def time_iat(self) -> datetime.datetime:
+    """Get issued at time [aware].
+
+    Returns
+    -------
+    :class:`datetime.datetime`
+      Issued at time [aware].
+    """
+    return self.now - datetime.timedelta(seconds=self.iat)
+
+  @property
+  def time_exp(self) -> datetime.datetime:
+    """Get expire at time.
+
+    Returns
+    -------
+    :class:`datetime.datetime`
+      Expire at time.
+    """
+    return self.now + datetime.timedelta(seconds=self.exp)
+
+  def gen_jwt(self, *, exp: int = None, iat: int = None, sub: int = None) -> str:
+    """Generate JWT.
+
+    Keyword Arguments
+    -----------------
+    exp: :class:`int`
+      Expire at [sec].
+    iat: :class:`int`
+      Issued at [sec].
+    sub: :class:`int`
+      Subject.
+
+    Returns
+    -------
+    :class:`str`
       jwt auth token.
     """
+    if exp is None:
+      exp = self.exp
+    if iat is None:
+      iat = self.iat
+    if sub is None:
+      sub = self.sub
+
     payload = {
       "iss": self.client_id,
       "aud": self.endpoint,
-      "sub": self.sub,
-      "exp": datetime.datetime.now() + datetime.timedelta(seconds=self.exp),
-      "iat": datetime.datetime.now() - datetime.timedelta(seconds=self.iss)
+      "sub": sub,
+      "iat": self.now - datetime.timedelta(seconds=iat),
+      "exp": self.now + datetime.timedelta(seconds=exp),
     }
     _jwt = jwt.encode(payload, self.client_secret,
                       algorithm=self.algorithm)
     return _jwt
 
-  def gen_pubkey(self) -> str:
+  def gen_pubkey(self, *, client_secret: str = None) -> str:
     """
     Generate public key.
-    :return: generated public key.
 
+    Keyword Arguments
+    -----------------
+    client_secret: :class:`str`
+      Client secret key.
+
+    Returns
+    -------
+    :class:`str`
+      public key.
     """
+    if client_secret is None:
+      client_secret = self.client_secret
+
     privkey = serialization.load_pem_private_key(
-      self.client_secret,
+      client_secret,
       password=None,
       backend=default_backend()
     )
@@ -137,6 +204,20 @@ class Auth(Authentication):
     return client_public
 
   def is_authorization(self, *, _jwt: str = None, client_public: str = None) -> bool:
+    """Check authorization.
+
+    Keyword Arguments
+    -----------------
+    _jwt: :class:`str`
+      JWT.
+    client_public: :class:`str`
+      Client public key.
+
+    Returns
+    -------
+    :class:`bool`
+      True if authorization.
+    """
     if _jwt is None:
       _jwt = self.gen_jwt()
     if client_public is None:
@@ -145,12 +226,26 @@ class Auth(Authentication):
       decoded_jwt = jwt.decode(_jwt, key=client_public,
                                audience=self.endpoint, algorithms=self.algorithm)
       if decoded_jwt['iss'] == self.client_id and decoded_jwt['sub'] == self.sub and decoded_jwt[
-        'aud'] == self.endpoint:
+        'aud'] == self.endpoint and decoded_jwt['iat'] == int(self.time_iat.timestamp()) and decoded_jwt[
+        'exp'] == int(self.time_exp.timestamp()):
         return True
     except:
       return False
 
   def get_access_token(self, *, _jwt: str = None, **kwargs) -> Optional[Union[list, dict]]:
+    """Get access token.
+
+    Keyword Arguments
+    ----------
+    _jwt: :class:`str`
+      JWT token.
+
+    Returns
+    -------
+    Optional[Union[:class:`list`, :class:`dict`]]
+      Access token.
+
+    """
     if _jwt is None:
       _jwt = self.gen_jwt()
     headers = {
