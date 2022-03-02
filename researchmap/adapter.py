@@ -189,7 +189,7 @@ class Auth(Authentication):
 
     Raises
     ------
-    :class:`~researchmap.exceptions.InvalidToken`
+    :exc:`InvalidToken`
       Invalid token.
     :class:`json.JSONDecodeError`
       JSON decode error.
@@ -313,10 +313,8 @@ class Auth(Authentication):
 
     Raises
     ------
-    :class:`.HTTPException`
+    :exc:`HTTPException`
       An unknown HTTP related error occurred, usually when it isn’t 200 or the known incorrect credentials passing status code.
-    :class:`.errors.__all__`
-      An error occurred in the API.
     """
     if _jwt is None:
       _jwt = self.gen_jwt()
@@ -357,9 +355,9 @@ class Auth(Authentication):
     ------
     :class:`TypeError`
       The type of the argument is not correct.
-    :class:`.HTTPException`
+    :exc:`HTTPException`
       An unknown HTTP related error occurred, usually when it isn’t 200 or the known incorrect credentials passing status code.
-    :class:`~researchmap.exceptions.InvalidToken`
+    :exc:`InvalidToken`
       Invalid token.
     """
     if access_token_response is None:

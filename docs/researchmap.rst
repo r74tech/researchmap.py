@@ -99,3 +99,15 @@ Exception Hierarchy
                 - :exc:`InvalidVersion`
                 - :exc:`ParseError`
                 - :exc:`InvalidNonce`
+                - :exc:`InvalidRequest`
+                - :exc:`InvalidToken`
+                - :exc:`MalformedToken`
+                - :exc:`InsufficientScope`
+                - :exc:`InvalidIP`
+                - :exc:`Forbidden`
+                - :exc:`NotFound`
+                - :exc:`MethodNotAllowed`
+                - :exc:`MaxSearchResult`
+                - :exc:`DatabaseError`
+                - :exc:`ServerError`
+                - :exc:`InternalServerError`
