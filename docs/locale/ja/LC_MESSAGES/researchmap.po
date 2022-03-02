@@ -9,7 +9,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: researchmap \n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-03-01 19:53+0900\n"
+"POT-Creation-Date: 2022-03-02 12:08+0900\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,7 +20,7 @@ msgstr ""
 
 #: ../../researchmap.rst:4
 msgid "API Reference"
-msgstr ""
+msgstr "API リファレンス"
 
 #: ../../researchmap.rst:7
 msgid "Adapter"
@@ -32,131 +32,181 @@ msgstr ""
 
 #: of researchmap.adapter.Auth:1
 msgid "Researchmap authentication interface."
-msgstr ""
+msgstr "Researchmap の認証インターフェースです"
 
-#: of researchmap.adapter.Auth
-msgid "Parameters"
+#: of researchmap.adapter.Auth researchmap.adapter.RequestsAdapter.get_bulk
+#: researchmap.adapter.RequestsAdapter.get_researcher_profile
+#: researchmap.adapter.RequestsAdapter.search_researcher
+msgid "パラメータ"
 msgstr ""
 
 #: of researchmap.adapter.Auth:3
 msgid "Client ID."
-msgstr ""
+msgstr "クライアントID"
 
 #: of researchmap.adapter.Auth:5
 msgid "Client secret.key."
-msgstr ""
+msgstr "クライアントシークレットキー"
 
 #: of researchmap.adapter.Auth researchmap.adapter.Auth.gen_jwt
 #: researchmap.adapter.Auth.gen_pubkey
 #: researchmap.adapter.Auth.get_access_token
+#: researchmap.adapter.Auth.get_access_token_response
 #: researchmap.adapter.Auth.is_authorization
-msgid "Keyword Arguments"
+msgid "キーワード引数"
 msgstr ""
 
 #: of researchmap.adapter.Auth:8 researchmap.adapter.Auth.gen_jwt:5
 msgid "Issued at [sec]."
-msgstr ""
+msgstr "JWTの発行時間[秒]"
 
 #: of researchmap.adapter.Auth:10 researchmap.adapter.Auth.gen_jwt:3
 msgid "Expire at [sec]."
-msgstr ""
+msgstr "JWTの有効期限[秒]"
 
 #: of researchmap.adapter.Auth:12 researchmap.adapter.Auth.gen_jwt:7
 msgid "Subject."
-msgstr ""
+msgstr "主体"
 
 #: of researchmap.adapter.Auth:14 researchmap.adapter.Auth.is_trial:3
 msgid "Trial mode."
-msgstr ""
+msgstr "トライアルサイトモード"
 
 #: of researchmap.adapter.Auth.gen_jwt:1
 msgid "Generate JWT."
-msgstr ""
+msgstr "JWTの生成"
 
 #: of researchmap.adapter.Auth.gen_jwt researchmap.adapter.Auth.gen_pubkey
 #: researchmap.adapter.Auth.get_access_token
+#: researchmap.adapter.Auth.get_access_token_response
 #: researchmap.adapter.Auth.is_authorization researchmap.adapter.Auth.is_trial
 #: researchmap.adapter.Auth.time_exp researchmap.adapter.Auth.time_iat
-#: researchmap.adapter.Auth.time_now
-msgid "Returns"
+#: researchmap.adapter.Auth.time_now researchmap.adapter.Auth.token
+#: researchmap.adapter.RequestsAdapter.get_bulk
+#: researchmap.adapter.RequestsAdapter.get_researcher_profile
+#: researchmap.adapter.RequestsAdapter.search_researcher
+msgid "戻り値"
 msgstr ""
 
 #: of researchmap.adapter.Auth.gen_jwt:10
 msgid "jwt auth token."
-msgstr ""
+msgstr "JWT認証トークン"
 
 #: of researchmap.adapter.Auth.gen_jwt researchmap.adapter.Auth.gen_pubkey
 #: researchmap.adapter.Auth.get_access_token
+#: researchmap.adapter.Auth.get_access_token_response
 #: researchmap.adapter.Auth.is_authorization researchmap.adapter.Auth.is_trial
 #: researchmap.adapter.Auth.time_exp researchmap.adapter.Auth.time_iat
-#: researchmap.adapter.Auth.time_now
-msgid "Return type"
+#: researchmap.adapter.Auth.time_now researchmap.adapter.Auth.token
+#: researchmap.adapter.RequestsAdapter.get_bulk
+#: researchmap.adapter.RequestsAdapter.get_researcher_profile
+#: researchmap.adapter.RequestsAdapter.search_researcher
+msgid "戻り値の型"
 msgstr ""
 
 #: of researchmap.adapter.Auth.gen_jwt:11 researchmap.adapter.Auth.gen_pubkey:7
-msgid ":class:`str`"
+msgid ":class:`bytes`"
 msgstr ""
 
 #: of researchmap.adapter.Auth.gen_pubkey:1
 msgid "Generate public key."
-msgstr ""
+msgstr "パブリックキーの生成"
 
 #: of researchmap.adapter.Auth.gen_pubkey:3
 msgid "Client secret key."
-msgstr ""
+msgstr "クライアントシークレットキー"
 
 #: of researchmap.adapter.Auth.gen_pubkey:6
 msgid "public key."
-msgstr ""
+msgstr "パブリックキー"
 
 #: of researchmap.adapter.Auth.get_access_token:1
+#: researchmap.adapter.Auth.get_access_token_response:1
 msgid "Get access token."
-msgstr ""
+msgstr "アクセストークンの取得"
 
 #: of researchmap.adapter.Auth.get_access_token:3
-msgid "JWT token."
-msgstr ""
+#, fuzzy
+msgid "Access token response."
+msgstr "アクセストークン"
 
 #: of researchmap.adapter.Auth.get_access_token:6
+#: researchmap.adapter.Auth.get_access_token_response:6
 msgid "Access token."
-msgstr ""
+msgstr "アクセストークン"
 
 #: of researchmap.adapter.Auth.get_access_token:7
+#: researchmap.adapter.Auth.token:4
+msgid ":class:`str`"
+msgstr ""
+
+#: of researchmap.adapter.Auth.get_access_token
+#: researchmap.adapter.Auth.get_access_token_response
+#: researchmap.adapter.Auth.is_authorization researchmap.adapter.Auth.token
+msgid "例外"
+msgstr ""
+
+#: of researchmap.adapter.Auth.get_access_token:9
+msgid "The type of the argument is not correct."
+msgstr ""
+
+#: of researchmap.adapter.Auth.get_access_token:10
+#: researchmap.adapter.Auth.get_access_token_response:9
+msgid ""
+"An unknown HTTP related error occurred, usually when it isn’t 200 or the "
+"known incorrect credentials passing status code."
+msgstr ""
+
+#: of researchmap.adapter.Auth.get_access_token:11
+#: researchmap.adapter.Auth.token:6
+msgid "Invalid token."
+msgstr ""
+
+#: of researchmap.adapter.Auth.get_access_token_response:3
+#: researchmap.adapter.Auth.is_authorization:3
+msgid "JWT."
+msgstr ""
+
+#: of researchmap.adapter.Auth.get_access_token_response:7
 msgid "Optional[Union[:class:`list`, :class:`dict`]]"
+msgstr ""
+
+#: of researchmap.adapter.Auth.get_access_token_response:10
+msgid "An error occurred in the API."
 msgstr ""
 
 #: of researchmap.adapter.Auth.is_authorization:1
 msgid "Check authorization."
-msgstr ""
-
-#: of researchmap.adapter.Auth.is_authorization:3
-msgid "JWT."
-msgstr ""
+msgstr "認証情報の確認"
 
 #: of researchmap.adapter.Auth.is_authorization:5
 msgid "Client public key."
-msgstr ""
+msgstr "クライアントパブリックキー"
 
 #: of researchmap.adapter.Auth.is_authorization:8
 msgid "True if authorization."
-msgstr ""
+msgstr "認証情報が正しい場合"
 
 #: of researchmap.adapter.Auth.is_authorization:9
 #: researchmap.adapter.Auth.is_trial:4
 msgid ":class:`bool`"
 msgstr ""
 
-#: of researchmap.adapter.Auth.is_trial:1
-msgid "Get trial mode."
+#: of researchmap.adapter.Auth.is_authorization:11
+msgid "Invalid JWT."
 msgstr ""
 
+#: of researchmap.adapter.Auth.is_trial:1
+msgid "Get trial mode."
+msgstr "トライアルモードでの実行"
+
 #: of researchmap.adapter.Auth.time_exp:1
-msgid "Get expire at time [aware]."
-msgstr ""
+msgid "Get expire at time :class:`datetime.datetime` [aware]."
+msgstr "有効期限 :class:`datetime.datetime` [aware]の取得"
 
 #: of researchmap.adapter.Auth.time_exp:3
 msgid "Expire at time of UTC."
-msgstr ""
+msgstr "有効期限(UTC)"
 
 #: of researchmap.adapter.Auth.time_exp:4 researchmap.adapter.Auth.time_iat:4
 #: researchmap.adapter.Auth.time_now:4
@@ -164,22 +214,88 @@ msgid ":class:`datetime.datetime`"
 msgstr ""
 
 #: of researchmap.adapter.Auth.time_iat:1
-msgid "Get issued at time [aware]."
-msgstr ""
+msgid "Get issued at time :class:`datetime.datetime` [aware]."
+msgstr "発行時間 :class:`datetime.datetime` [aware]の取得"
 
 #: of researchmap.adapter.Auth.time_iat:3
 msgid "Issued at time of UTC."
-msgstr ""
+msgstr "発行時間(UTC)"
 
 #: of researchmap.adapter.Auth.time_now:1
-msgid "Get current time [aware]."
-msgstr ""
+msgid "Get current time :class:`datetime.datetime` [aware]."
+msgstr "実行時刻 :class:`datetime.datetime` [aware]の取得"
 
 #: of researchmap.adapter.Auth.time_now:3
 msgid "Current time of UTC."
+msgstr "実行時刻(UTC)"
+
+#: of researchmap.adapter.Auth.token:1
+#, fuzzy
+msgid "Get token."
+msgstr "アクセストークン"
+
+#: of researchmap.adapter.Auth.token:3
+msgid "Token."
+msgstr "トークン"
+
+#: of researchmap.adapter.Auth.token:7
+msgid "JSON decode error."
+msgstr ""
+
+#: of researchmap.adapter.Auth.token:8
+msgid "HTTP error."
 msgstr ""
 
 #: ../../researchmap.rst:19
 msgid "RequestsAdapter"
 msgstr ""
+
+#: of researchmap.adapter.RequestsAdapter.get_bulk:1
+msgid "Get bulk data from the API."
+msgstr ""
+
+#: of researchmap.adapter.RequestsAdapter.get_bulk:3
+#: researchmap.adapter.RequestsAdapter.get_researcher_profile:5
+#: researchmap.adapter.RequestsAdapter.search_researcher:3
+msgid "A dictionary containing the parameters for the request."
+msgstr ""
+
+#: of researchmap.adapter.RequestsAdapter.get_bulk:6
+#: researchmap.adapter.RequestsAdapter.get_researcher_profile:8
+#: researchmap.adapter.RequestsAdapter.search_researcher:6
+msgid "A dictionary or list containing the data returned by the API."
+msgstr ""
+
+#: of researchmap.adapter.RequestsAdapter.get_bulk:7
+#: researchmap.adapter.RequestsAdapter.get_researcher_profile:9
+#: researchmap.adapter.RequestsAdapter.search_researcher:7
+msgid ":class:`dict` or :class:`list`"
+msgstr ""
+
+#: of researchmap.adapter.RequestsAdapter.get_researcher_profile:1
+msgid "Get a researcher profile."
+msgstr ""
+
+#: of researchmap.adapter.RequestsAdapter.get_researcher_profile:3
+msgid "The permalink of the researcher."
+msgstr ""
+
+#: of researchmap.adapter.RequestsAdapter.search_researcher:1
+msgid "Search for researchers."
+msgstr ""
+
+#~ msgid "Parameters"
+#~ msgstr "パラメータ"
+
+#~ msgid "Keyword Arguments"
+#~ msgstr "キーワード引数"
+
+#~ msgid "Returns"
+#~ msgstr "戻り値"
+
+#~ msgid "Return type"
+#~ msgstr ""
+
+#~ msgid "JWT token."
+#~ msgstr ""
 

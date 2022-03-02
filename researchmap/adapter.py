@@ -147,7 +147,7 @@ class Auth(Authentication):
 
   @property
   def time_now(self) -> datetime.datetime:
-    """Get current time [aware].
+    """Get current time :class:`datetime.datetime` [aware].
 
     Returns
     -------
@@ -158,7 +158,7 @@ class Auth(Authentication):
 
   @property
   def time_iat(self) -> datetime.datetime:
-    """Get issued at time [aware].
+    """Get issued at time :class:`datetime.datetime` [aware].
 
     Returns
     -------
@@ -169,7 +169,7 @@ class Auth(Authentication):
 
   @property
   def time_exp(self) -> datetime.datetime:
-    """Get expire at time [aware].
+    """Get expire at time :class:`datetime.datetime` [aware].
 
     Returns
     -------
