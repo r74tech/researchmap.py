@@ -19,6 +19,12 @@ __path__ = __import__('pkgutil').extend_path(__path__, __name__)
 from .adapter import Auth, Authentication, Adapter, AiohttpAdapter, RequestsAdapter
 from .wrapper import Wrapper
 
+from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, InvalidClient, InvalidScope,
+                     InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
+                     InvalidRequest, InvalidToken, MalformedToken, InsufficientScope, InvalidIP,
+                     Forbidden, NotFound, MethodNotAllowed, MaxSearchResult, DatabaseError,
+                     ServerError, InternalServerError, HTTPException)
+
 __all__ = [
   'Wrapper',
   'Adapter',

@@ -35,6 +35,7 @@ class ResearchmapException(Exception):
 
 class HTTPException(ResearchmapException):
   """Exception raised when an HTTP request fails.
+
   Attributes
   ------------
   response: Union[:class:`aiohttp.ClientResponse`, :class:`requests.Response`]
@@ -64,6 +65,10 @@ class HTTPException(ResearchmapException):
 class UnsupportedResponseType(HTTPException):
   """Exception raised when the response type is not supported.
   Subclass of :exc:`HTTPException`
+
+  .. note::
+
+    Researchmap API v2 returns this error when the response type is not supported.
   """
   pass
 
@@ -71,6 +76,14 @@ class UnsupportedResponseType(HTTPException):
 class UnauthorizedClient(HTTPException):
   """Exception raised when the client is not authorized.
   Subclass of :exc:`HTTPException`
+
+  .. note::
+
+    Researchmap API v2 returns this error when the client is not authorized in the current way.
+
+    -> Check if the client ID is correct and if the signature information by JWT is correct.
+
+    -> Also, this message will appear if you execute a Flow that is not allowed in grant_type when creating the client ID.
   """
   pass
 
