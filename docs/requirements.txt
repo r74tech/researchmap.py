@@ -3,3 +3,4 @@ sphinxcontrib-trio
 aiohttp
 sphinxcontrib-websupport
 myst-parser
+PyJWT
