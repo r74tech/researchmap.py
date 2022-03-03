@@ -24,6 +24,28 @@ RequestsAdapter
     :members:
     :inherited-members:
 
+AiohttpAdapter
+~~~~~~~~~~~~~~
+
+.. attributetable:: researchmap.adapter.AiohttpAdapter
+
+.. autoclass:: researchmap.adapter.AiohttpAdapter
+    :members:
+    :inherited-members:
+
+
+Wrapper
+-------
+
+Wrapper
+~~~~~~~
+
+.. attributetable:: researchmap.wrapper.Wrapper
+
+.. autoclass:: researchmap.wrapper.Wrapper
+    :members:
+    :inherited-members:
+
 
 Exceptions
 ------------

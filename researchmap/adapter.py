@@ -527,8 +527,10 @@ class RequestsAdapter(Adapter):
 
 class AiohttpAdapter(Adapter):
   async def request(self, method: str, permalink: str, *,
-                    archivement_type: str = "", query: str = "", payload: dict = {}, **kwargs) -> Optional[
+                    archivement_type: str = "", query: str = "", payload=None, **kwargs) -> Optional[
     Union[list, dict]]:
+    if payload is None:
+      payload = {}
     payload['auth_key'] = self.authentication_key
     url = self.base_url.format(permalink=permalink, archivement_type=archivement_type, query=query)
 
@@ -541,9 +543,64 @@ class AiohttpAdapter(Adapter):
       status_code = resp.status
     return self._check_status(status_code, resp, data)
 
-  async def get_bulk(self, payload: dict = {}) -> str:
+  async def get_bulk(self, payload=None) -> Union[list, dict, None]:
+    """
+    Get bulk data from the API.
+
+    Parameters
+    ----------
+    payload : :class:`dict`
+      A dictionary containing the parameters for the request.
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
+    if payload is None:
+      payload = {}
     data = await self.request('GET', '/_bulk', payload=payload)
     return data
+
+
+  async def search_researcher(self, payload=None) -> Union[list, dict, None]:
+    """ Search for researchers.
+
+    Parameters
+    ----------
+    payload : :class:`dict`
+      A dictionary containing the parameters for the request.
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
+    if payload is None:
+      payload = {}
+    data = await self.request('GET', '/researchers', payload=payload)
+    return data
+
+  async def get_researcher_profile(self, permalink, payload=None) -> Union[list, dict, None]:
+    """ Get a researcher profile.
+
+    Parameters
+    ----------
+    permalink : :class:`str`
+      The permalink of the researcher.
+    payload : :class:`dict`
+      A dictionary containing the parameters for the request.
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
+    if payload is None:
+      payload = {}
+    data = await self.request('GET', permalink, archivement_type='profile', payload=payload)
+    return data
+
 
   async def get_usage(self) -> None:
     return None
