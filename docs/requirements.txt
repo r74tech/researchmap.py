@@ -1,6 +1,9 @@
+PyJWT
+aiohttp
+requests
+cryptography
 sphinx
 sphinxcontrib-trio
-aiohttp
 sphinxcontrib-websupport
+sphinx-intl
 myst-parser
-PyJWT
