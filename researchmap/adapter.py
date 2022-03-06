@@ -47,13 +47,12 @@ class Authentication(metaclass=ABCMeta):
     raise NotImplementedError()
 
   @abstractmethod
-  def get_access_token_response(self, jwt: str, **kwargs)->  Optional[Union[list, dict]]:
+  def get_access_token_response(self, jwt: str, **kwargs) -> Optional[Union[list, dict]]:
     raise NotImplementedError()
 
   @abstractmethod
   def get_access_token(self, *, access_token_response: str) -> str:
     raise NotImplementedError()
-
 
   @abstractmethod
   def get_usage(self) -> dict:
@@ -119,8 +118,8 @@ class Auth(Authentication):
   ----------
   client_id: :class:`str`
     Client ID.
-  client_secret: :class:`str`
-    Client secret.key.
+  client_secret: :class:`bytes`
+    Client secret key.
 
   Keyword Arguments
   -----------------
@@ -213,7 +212,7 @@ class Auth(Authentication):
     Returns
     -------
     :class:`bytes`
-      jwt auth token.
+      JWT.
     """
     if exp is None:
       exp = self.exp
@@ -245,7 +244,7 @@ class Auth(Authentication):
     Returns
     -------
     :class:`bytes`
-      public key.
+       Client public key.
     """
     if client_secret is None:
       client_secret = self.client_secret
@@ -562,7 +561,6 @@ class AiohttpAdapter(Adapter):
     data = await self.request('GET', '/_bulk', payload=payload)
     return data
 
-
   async def search_researcher(self, payload=None) -> Union[list, dict, None]:
     """ Search for researchers.
 
@@ -600,7 +598,6 @@ class AiohttpAdapter(Adapter):
       payload = {}
     data = await self.request('GET', permalink, archivement_type='profile', payload=payload)
     return data
-
 
   async def get_usage(self) -> None:
     return None
