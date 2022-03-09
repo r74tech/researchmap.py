@@ -21,7 +21,7 @@ __all__ = ['Authentication', 'Auth', 'Adapter', 'RequestsAdapter', 'AiohttpAdapt
 
 class Authentication(metaclass=ABCMeta):
   def __init__(self, client_id, client_secret, scope, *, iat: int = 30, exp: int = 30, sub="0", trial: bool = False):
-    self.endpoint = 'https://api-trial.researchmap.jp'
+    self.endpoint = 'https://api-trial.researchmap.jp/oauth2/token'
     self.version = "2"
     self.grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer"
     self.algorithm = "RS256"
@@ -223,7 +223,7 @@ class Auth(Authentication):
 
     payload = {
       "iss": self.client_id,
-      "aud": "https:\/\/api-trial.researchmap.jp\/",
+      "aud": self.endpoint,
       "sub": sub,
       "iat": self.now - datetime.timedelta(seconds=iat),
       "exp": self.now + datetime.timedelta(seconds=exp),
@@ -288,9 +288,9 @@ class Auth(Authentication):
       client_public = self.gen_pubkey()
     try:
       decoded_jwt = jwt.decode(_jwt, key=client_public,
-                               audience="https:\/\/api-trial.researchmap.jp\/", algorithms=self.algorithm)
+                               audience=self.endpoint, algorithms=self.algorithm)
       if decoded_jwt['iss'] == self.client_id and decoded_jwt['sub'] == self.sub and decoded_jwt[
-        'aud'] == "https:\/\/api-trial.researchmap.jp\/":
+        'aud'] == self.endpoint:
         return True
     except:
       print("The signature of JWT cannot be verified.")
@@ -370,7 +370,7 @@ class Auth(Authentication):
 
 class Adapter(metaclass=ABCMeta):
   def __init__(self, authentication_key: str) -> None:
-    self.base_url = 'https://api.researchmap.jp/{permalink}/{archivement_type}?{query}'
+    self.base_url = 'https://api-trial.researchmap.jp/{permalink}/{archivement_type}?{query}'
     self.authentication_key = authentication_key
     self.payload = {}
 
@@ -480,7 +480,8 @@ class RequestsAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    data = self.request('GET', '/_bulk', payload=payload)
+    print(payload)
+    data = self.request('POST', '/_bulk', payload=payload)
     return data
 
   def search_researcher(self, payload=None) -> Union[list, dict, None]:
@@ -498,7 +499,7 @@ class RequestsAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    data = self.request('GET', '/researchers', payload=payload)
+    data = self.request('POST', '/researchers', payload=payload)
     return data
 
   def get_researcher_profile(self, permalink, payload=None) -> Union[list, dict, None]:
@@ -518,7 +519,7 @@ class RequestsAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    data = self.request('GET', permalink, archivement_type='profile', payload=payload)
+    data = self.request('POST', permalink, archivement_type='profile', payload=payload)
     return data
 
   def get_usage(self) -> None:
@@ -559,7 +560,7 @@ class AiohttpAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    data = await self.request('GET', '/_bulk', payload=payload)
+    data = await self.request('POST', '/_bulk', payload=payload)
     return data
 
   async def search_researcher(self, payload=None) -> Union[list, dict, None]:
@@ -577,7 +578,7 @@ class AiohttpAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    data = await self.request('GET', '/researchers', payload=payload)
+    data = await self.request('POST', '/researchers', payload=payload)
     return data
 
   async def get_researcher_profile(self, permalink, payload=None) -> Union[list, dict, None]:
@@ -597,7 +598,7 @@ class AiohttpAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    data = await self.request('GET', permalink, archivement_type='profile', payload=payload)
+    data = await self.request('POST', permalink, archivement_type='profile', payload=payload)
     return data
 
   async def get_usage(self) -> None:
