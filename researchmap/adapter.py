@@ -10,18 +10,18 @@ import urllib.parse
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
-# from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, InvalidClient, InvalidScope,
-#                      InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
-#                      InvalidRequest, InvalidToken, MalformedToken, InsufficientScope, InvalidIP,
-#                      Forbidden, NotFound, MethodNotAllowed, MaxSearchResult, DatabaseError,
-#                      ServerError, InternalServerError, HTTPException)
+from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, InvalidClient, InvalidScope,
+                     InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
+                     InvalidRequest, InvalidToken, MalformedToken, InsufficientScope, InvalidIP,
+                     Forbidden, NotFound, MethodNotAllowed, MaxSearchResult, DatabaseError,
+                     ServerError, InternalServerError, HTTPException)
 
 __all__ = ['Authentication', 'Auth', 'Adapter', 'RequestsAdapter', 'AiohttpAdapter']
 
 
 class Authentication(metaclass=ABCMeta):
-  def __init__(self, client_id, client_secret, scope, *, iat: int = 30, exp: int = 30, sub=0, trial: bool = False):
-    self.endpoint = 'https://api.researchmap.jp/oauth2/token'
+  def __init__(self, client_id, client_secret, scope, *, iat: int = 30, exp: int = 30, sub="0", trial: bool = False):
+    self.endpoint = 'https://api-trial.researchmap.jp'
     self.version = "2"
     self.grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer"
     self.algorithm = "RS256"
@@ -197,7 +197,7 @@ class Auth(Authentication):
     """
     return self.get_access_token()
 
-  def gen_jwt(self, *, exp: int = None, iat: int = None, sub: int = None) -> bytes:
+  def gen_jwt(self, *, exp: int = None, iat: int = None, sub: str = None) -> bytes:
     """Generate JWT.
 
     Keyword Arguments
@@ -223,12 +223,11 @@ class Auth(Authentication):
 
     payload = {
       "iss": self.client_id,
-      "aud": "https:¥/¥/api.researchmap.jp¥/oauth2¥/token",
+      "aud": "https:\/\/api-trial.researchmap.jp\/",
       "sub": sub,
       "iat": self.now - datetime.timedelta(seconds=iat),
       "exp": self.now + datetime.timedelta(seconds=exp),
     }
-    print(payload)
     _jwt = jwt.encode(payload, self.client_secret,
                       algorithm=self.algorithm)
     return _jwt
@@ -289,20 +288,20 @@ class Auth(Authentication):
       client_public = self.gen_pubkey()
     try:
       decoded_jwt = jwt.decode(_jwt, key=client_public,
-                               audience="https:¥/¥/api.researchmap.jp¥/oauth2¥/token", algorithms=self.algorithm)
+                               audience="https:\/\/api-trial.researchmap.jp\/", algorithms=self.algorithm)
       if decoded_jwt['iss'] == self.client_id and decoded_jwt['sub'] == self.sub and decoded_jwt[
-        'aud'] == "https:¥/¥/api.researchmap.jp¥/oauth2¥/token":
+        'aud'] == "https:\/\/api-trial.researchmap.jp\/":
         return True
     except:
       print("The signature of JWT cannot be verified.")
       return False
 
-  def get_access_token_response(self, *, _jwt: str = None, **kwargs) -> Optional[Union[list, dict]]:
+  def get_access_token_response(self, *, _jwt: bytes = None, **kwargs) -> Optional[Union[list, dict]]:
     """Get access token.
 
     Keyword Arguments
     ----------
-    _jwt: :class:`str`
+    _jwt: :class:`bytes`
       JWT.
 
     Returns
@@ -326,13 +325,15 @@ class Auth(Authentication):
       'scope': self.scope,
       'version': self.version
     }
-    data = urllib.parse.urlencode(params)
+    payload = urllib.parse.urlencode(params)
     if self.is_authorization():
-      req_access_token = requests.post(url=self.endpoint, headers=headers, data=data)
+      req_access_token = requests.post(url=self.endpoint, headers=headers, data=payload)
       try:
         data = req_access_token.json()
       except json.JSONDecodeError:
-        data = req_access_token.content
+        redata = re.sub('[\r\n]+$', ' ', req_access_token.content.decode(req_access_token.encoding))
+        data = {}
+        data["error"] = re.search("<h1>(.+)</h1>", redata).groups()[0].lower()
       return self._check_status(req_access_token.status_code, req_access_token, data)
     else:
       print("Access Token is not valid")
@@ -603,7 +604,6 @@ class AiohttpAdapter(Adapter):
     return None
 
 
-
 def main():
   with open('env/rmap_jwt_private.key', 'rb') as f_private:
     private_key = f_private.read()
@@ -614,7 +614,6 @@ def main():
   scope = 'read researchers'
   auth = Auth(client_id, client_secret, scope)
   print(auth.token)
-
 
   # req = researchmap.RequestsAdapter(auth_key)
   # payload = {"format": "json", "limit": 100, "institution_code": "0332000000"}

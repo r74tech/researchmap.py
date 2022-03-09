@@ -131,3 +131,8 @@ dmypy.json
 .idea/
 test/
 exp/
+
+#log files
+*.log
+/log
+/logs
