@@ -5,16 +5,16 @@ import jwt
 import aiohttp
 import datetime
 import requests
-
-import urllib
+import re
+import urllib.parse
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 
-from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, InvalidClient, InvalidScope,
-                     InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
-                     InvalidRequest, InvalidToken, MalformedToken, InsufficientScope, InvalidIP,
-                     Forbidden, NotFound, MethodNotAllowed, MaxSearchResult, DatabaseError,
-                     ServerError, InternalServerError, HTTPException)
+# from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, InvalidClient, InvalidScope,
+#                      InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
+#                      InvalidRequest, InvalidToken, MalformedToken, InsufficientScope, InvalidIP,
+#                      Forbidden, NotFound, MethodNotAllowed, MaxSearchResult, DatabaseError,
+#                      ServerError, InternalServerError, HTTPException)
 
 __all__ = ['Authentication', 'Auth', 'Adapter', 'RequestsAdapter', 'AiohttpAdapter']
 
@@ -223,11 +223,12 @@ class Auth(Authentication):
 
     payload = {
       "iss": self.client_id,
-      "aud": self.endpoint,
+      "aud": "https:¥/¥/api.researchmap.jp¥/oauth2¥/token",
       "sub": sub,
       "iat": self.now - datetime.timedelta(seconds=iat),
       "exp": self.now + datetime.timedelta(seconds=exp),
     }
+    print(payload)
     _jwt = jwt.encode(payload, self.client_secret,
                       algorithm=self.algorithm)
     return _jwt
@@ -288,10 +289,9 @@ class Auth(Authentication):
       client_public = self.gen_pubkey()
     try:
       decoded_jwt = jwt.decode(_jwt, key=client_public,
-                               audience=self.endpoint, algorithms=self.algorithm)
+                               audience="https:¥/¥/api.researchmap.jp¥/oauth2¥/token", algorithms=self.algorithm)
       if decoded_jwt['iss'] == self.client_id and decoded_jwt['sub'] == self.sub and decoded_jwt[
-        'aud'] == self.endpoint and decoded_jwt['iat'] == int(self.time_iat.timestamp()) and decoded_jwt[
-        'exp'] == int(self.time_exp.timestamp()):
+        'aud'] == "https:¥/¥/api.researchmap.jp¥/oauth2¥/token":
         return True
     except:
       print("The signature of JWT cannot be verified.")
@@ -601,3 +601,25 @@ class AiohttpAdapter(Adapter):
 
   async def get_usage(self) -> None:
     return None
+
+
+
+def main():
+  with open('env/rmap_jwt_private.key', 'rb') as f_private:
+    private_key = f_private.read()
+  with open('env/rmap_client_id.key', 'r') as f_id:
+    id = f_id.read()
+  client_id = id
+  client_secret = private_key
+  scope = 'read researchers'
+  auth = Auth(client_id, client_secret, scope)
+  print(auth.token)
+
+
+  # req = researchmap.RequestsAdapter(auth_key)
+  # payload = {"format": "json", "limit": 100, "institution_code": "0332000000"}
+  # print(req.get_bulk(payload))
+
+
+if __name__ == "__main__":
+  main()
