@@ -446,8 +446,11 @@ class Adapter(metaclass=ABCMeta):
 
 class RequestsAdapter(Adapter):
   def request(self, method: str, permalink: str, *,
-              archivement_type: str = "", query: str = "", payload=None, **kwargs) -> Optional[Union[list, dict]]:
-
+              archivement_type: str = None, query: str = None, payload=None, **kwargs) -> Optional[Union[list, dict]]:
+    if archivement_type is None:
+      archivement_type = ""
+    if query is None:
+      query = ""
     if payload is None:
       payload = {}
     headers = {
@@ -457,6 +460,7 @@ class RequestsAdapter(Adapter):
     }
     url = self.base_url.format(permalink=permalink, archivement_type=archivement_type, query=query)
     payload = urllib.parse.urlencode(payload)
+    print(url, payload)
     resp = requests.request(method, url, headers=headers, data=payload, **kwargs)
     try:
       data = resp.json()
@@ -480,8 +484,7 @@ class RequestsAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    print(payload)
-    data = self.request('POST', '/_bulk', payload=payload)
+    data = self.request('POST', '_bulk', payload=payload)
     return data
 
   def search_researcher(self, payload=None) -> Union[list, dict, None]:
@@ -499,7 +502,7 @@ class RequestsAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    data = self.request('POST', '/researchers', payload=payload)
+    data = self.request('GET', 'researchers', payload=payload)
     return data
 
   def get_researcher_profile(self, permalink, payload=None) -> Union[list, dict, None]:
@@ -519,7 +522,7 @@ class RequestsAdapter(Adapter):
     """
     if payload is None:
       payload = {}
-    data = self.request('POST', permalink, archivement_type='profile', payload=payload)
+    data = self.request('GET', permalink, archivement_type='profile', payload=payload)
     return data
 
   def get_usage(self) -> None:
