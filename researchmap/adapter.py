@@ -9,6 +9,7 @@ import re
 import urllib.parse
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
+import pprint
 
 from .errors import (UnsupportedResponseType, UnauthorizedClient, AccessDenied, InvalidClient, InvalidScope,
                      InvalidGrant, UnsupportedGrantType, InvalidVersion, ParseError, InvalidNonce,
@@ -21,7 +22,8 @@ __all__ = ['Authentication', 'Auth', 'Adapter', 'RequestsAdapter', 'AiohttpAdapt
 
 class Authentication(metaclass=ABCMeta):
   def __init__(self, client_id, client_secret, scope, *, iat: int = 30, exp: int = 30, sub="0", trial: bool = False):
-    self.endpoint = 'https://api-trial.researchmap.jp/oauth2/token'
+    self.trial = trial
+    self.endpoint = 'https://api.researchmap.jp/oauth2/token' if not self.trial else 'https://api-trial.researchmap.jp/oauth2/token'
     self.version = "2"
     self.grant_type = "urn:ietf:params:oauth:grant-type:jwt-bearer"
     self.algorithm = "RS256"
@@ -31,7 +33,6 @@ class Authentication(metaclass=ABCMeta):
     self.iat = iat
     self.exp = exp
     self.sub = sub
-    self.trial = trial
     self.now = datetime.datetime.now(datetime.timezone.utc)
 
   @abstractmethod
@@ -369,8 +370,10 @@ class Auth(Authentication):
 
 
 class Adapter(metaclass=ABCMeta):
-  def __init__(self, authentication_key: str) -> None:
-    self.base_url = 'https://api-trial.researchmap.jp/{permalink}/{archivement_type}?{query}'
+  def __init__(self, authentication_key: str, trial: bool = False) -> None:
+    self.trial = trial
+    self.base_url = 'https://api.researchmap.jp/{permalink}/{archivement_type}?{query}' if not self.trial \
+      else 'https://api-trial.researchmap.jp/{permalink}/{archivement_type}?{query}'
     self.authentication_key = authentication_key
     self.payload = {}
 
@@ -380,7 +383,18 @@ class Adapter(metaclass=ABCMeta):
     raise NotImplementedError()
 
   @abstractmethod
-  def get_bulk(self, payload: dict):
+  def get_bulk(self, params: dict):
+    raise NotImplementedError()
+
+  @abstractmethod
+  def set_bulk(self, jsondata: dict, params: dict):
+    raise NotImplementedError()
+
+  @abstractmethod
+  def set_bulk_apply(self, params):
+    raise NotImplementedError()
+  @abstractmethod
+  def get_bulk_results(self, params: dict):
     raise NotImplementedError()
 
   @abstractmethod
@@ -394,6 +408,7 @@ class Adapter(metaclass=ABCMeta):
   def _check_status(self, status_code, response, data) -> Union[dict, list]:
     if 200 <= status_code < 300:
       return data
+    print(data)
     error_messages = data.get('error', '') if data else ''
     message = data.get('error_description', '') if data else ''
     if status_code == 302 and error_messages == 'unsupported_response_type':
@@ -444,37 +459,42 @@ class Adapter(metaclass=ABCMeta):
       raise HTTPException(response, message)
 
 
+
 class RequestsAdapter(Adapter):
   def request(self, method: str, permalink: str, *,
-              archivement_type: str = None, query: str = None, payload=None, **kwargs) -> Optional[Union[list, dict]]:
+              archivement_type: str = None, query: str = None, params=None, payload=None, jsondata=None, **kwargs) -> Optional[
+    Union[list, dict]]:
     if archivement_type is None:
       archivement_type = ""
     if query is None:
       query = ""
     if payload is None:
       payload = {}
+    if params is None:
+      params = {}
+    if jsondata is None:
+      jsondata = {}
     headers = {
       'Authorization': 'Bearer {}'.format(self.authentication_key),
       'Accept': 'application/ld+json,application/json;q=0.1',
       'Content-Type': 'application/x-www-form-urlencoded'
     }
     url = self.base_url.format(permalink=permalink, archivement_type=archivement_type, query=query)
-    payload = urllib.parse.urlencode(payload)
-    print(url, payload)
-    resp = requests.request(method, url, headers=headers, data=payload, **kwargs)
+
+    resp = requests.request(method, url, params=params, data=payload, json=jsondata, headers=headers, **kwargs)
     try:
       data = resp.json()
-    except json.JSONDecodeError:
+    except jsondata.JSONDecodeError:
       data = resp.content
     return self._check_status(resp.status_code, resp, data)
 
-  def get_bulk(self, payload=None) -> Union[list, dict, None]:
+  def get_bulk(self, params=None) -> Union[list, dict, None]:
     """
     Get bulk data from the API.
 
     Parameters
     ----------
-    payload : :class:`dict`
+    params : :class:`dict`
       A dictionary containing the parameters for the request.
 
     Returns
@@ -482,9 +502,73 @@ class RequestsAdapter(Adapter):
     :class:`dict` or :class:`list`
       A dictionary or list containing the data returned by the API.
     """
-    if payload is None:
-      payload = {}
-    data = self.request('POST', '_bulk', payload=payload)
+    if params is None:
+      params = {}
+    data = self.request('POST', '_bulk', params=params)
+    print(data)
+    return data
+
+  def set_bulk(self, params=None, jsondata=None) -> Union[list, dict, None]:
+    """
+    Set bulk data to the API.
+
+    Parameters
+    ----------
+    params : :class:`dict`
+      A dictionary containing the data to be set.
+    jsondata
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
+    if params is None:
+      params = {}
+    if jsondata is None:
+      jsondata = {}
+
+    data = self.request('POST', '_bulk', params=params, jsondata=jsondata)
+    return data
+
+
+  def set_bulk_apply(self, params=None) -> Union[list, dict, None]:
+    """
+    Set bulk data to the API.
+
+    Parameters
+    ----------
+    params : :class:`dict`
+      A dictionary containing the data to be set.
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
+    if params is None:
+      params = {}
+
+    data = self.request('POST', '_bulk', params=params)
+    return data
+
+  def get_bulk_results(self, params=None) -> Union[list, dict, None]:
+    """
+    Get bulk results from the API.
+
+    Parameters
+    ----------
+    params : :class:`dict`
+      A dictionary containing the parameters for the request.
+
+    Returns
+    -------
+    :class:`dict` or :class:`list`
+      A dictionary or list containing the data returned by the API.
+    """
+    if params is None:
+      params = {}
+    data = self.request('GET', '_bulk_results', params=params)
     return data
 
   def search_researcher(self, payload=None) -> Union[list, dict, None]:
@@ -606,23 +690,3 @@ class AiohttpAdapter(Adapter):
 
   async def get_usage(self) -> None:
     return None
-
-
-def main():
-  with open('env/rmap_jwt_private.key', 'rb') as f_private:
-    private_key = f_private.read()
-  with open('env/rmap_client_id.key', 'r') as f_id:
-    id = f_id.read()
-  client_id = id
-  client_secret = private_key
-  scope = 'read researchers'
-  auth = Auth(client_id, client_secret, scope)
-  print(auth.token)
-
-  # req = researchmap.RequestsAdapter(auth_key)
-  # payload = {"format": "json", "limit": 100, "institution_code": "0332000000"}
-  # print(req.get_bulk(payload))
-
-
-if __name__ == "__main__":
-  main()
