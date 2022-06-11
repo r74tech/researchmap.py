@@ -14,7 +14,7 @@ with open('README.md', 'r', encoding="utf-8") as f:
     long_description = f.read()
 
 setuptools.setup(
-    name='researchmap',
+    name='researchmap.py',
     version=version,
     license='MIT',
     description='This is a wrapper for the Researchmap API.',
