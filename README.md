@@ -5,7 +5,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/RTa-technology/researchmap.py)](https://github.com/RTa-technology/researchmap.py/stargazers)
 [![PyPI version](https://badge.fury.io/py/researchmap.py.svg)](https://badge.fury.io/py/researchmap.py)
 [![Python Versions](https://img.shields.io/pypi/pyversions/researchmap.py.svg)](https://pypi.org/project/researchmap.py/)
-[![Downloads](https://pepy.tech/badge/researchmap-py)](https://pepy.tech/project/researchmap-py)
+[![Downloads](https://static.pepy.tech/personalized-badge/researchmap-py?period=total&units=international_system&left_color=grey&right_color=blue&left_text=Downloads)](https://pepy.tech/project/researchmap-py)
 
 ## Key Features
 * Modern Pythonic API using `async` and `await`.
